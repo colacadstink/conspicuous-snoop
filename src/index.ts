@@ -5,7 +5,7 @@ import {
   backupPathPrompt,
   confirmPrompt,
   createEventPrompt,
-  createOrgPrompt, getSnapshotNamePrompt, getSnoopPrompt,
+  createOrgPrompt, createSnoopNamePrompt, getSnapshotNamePrompt, getSnoopPrompt,
   loginPrompt
 } from "./promptsConfigs.js";
 import {SnoopInstance} from "./SnoopInstance.js";
@@ -31,6 +31,8 @@ if(myOrgs.length === 0) {
 
 const snoops: SnoopInstance[] = [];
 
+const {backupPath} = await prompts(backupPathPrompt, quitOnCancel);
+
 let continueLooping = true;
 while(continueLooping) {
   const {action} = await prompts(actionsPrompt);
@@ -48,10 +50,9 @@ while(continueLooping) {
       const event = (await prompts(createEventPrompt(events.events))).event as Event;
       if(!event) continue;
 
-      const {backupPath} = await prompts(backupPathPrompt);
-      if(!backupPath) continue;
+      const {name} = await prompts(createSnoopNamePrompt(event));
 
-      snoops.push(new SnoopInstance(client, event, backupPath));
+      snoops.push(new SnoopInstance(client, event, name, backupPath));
       const setupSnap = await snoops.at(-1).init();
       console.log('New snoop created! Rolling snapshot created at ' + setupSnap);
       break;

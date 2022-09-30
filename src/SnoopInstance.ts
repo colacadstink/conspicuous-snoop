@@ -9,10 +9,12 @@ export class SnoopInstance {
   constructor(
     private client: EventlinkClient,
     private event: Event,
+    private name: string,
     private backupPath: string,
   ) {}
 
   init() {
+    fs.mkdirSync(path.join(this.backupPath, this.name));
     this.#subs = [
       this.client.subscribeToGameResultReported(this.event.id).subscribe(() => this.updateRollingSnapshot()),
       this.client.subscribeToCurrentRound(this.event.id).subscribe((round) => this.roundChange(round)),
@@ -44,10 +46,10 @@ export class SnoopInstance {
     const eventJSON = JSON.stringify(eventInfo, null, 2);
 
     let filename = `${dateString}.${snapshotName}.json`;
-    let savePath = path.join(this.backupPath, 'snapshots', filename);
+    let savePath = path.join(this.backupPath, this.name, 'snapshots', filename);
     if(isRolling) {
       filename = `${snapshotName}.json`;
-      savePath = path.join(this.backupPath, filename)
+      savePath = path.join(this.backupPath, this.name, filename)
     }
 
     await fs.promises.writeFile(
@@ -63,6 +65,6 @@ export class SnoopInstance {
   }
 
   toString() {
-    return `${this.event.title} (${this.event.scheduledStartTime})`
+    return `${this.name}: ${this.event.title} (${this.event.scheduledStartTime})`
   }
 }

@@ -2,7 +2,6 @@ import {PromptObject} from "prompts";
 import {Event, Organization} from "spirit-link";
 import * as fs from "fs";
 import {SnoopInstance} from "./SnoopInstance.js";
-import * as path from "path";
 
 export const loginPrompt: PromptObject[] = [{
   type: "text",
@@ -71,13 +70,23 @@ export const createEventPrompt = (events: Event[]): PromptObject => {
   }
 }
 
+export const createSnoopNamePrompt = (event: Event): PromptObject => {
+  return {
+    type: "text",
+    name: "name",
+    message: "What would you like to name this snoop?",
+    initial: event.title.replace(/[^-. a-zA-Z0-9]/g, '').substring(0, 20),
+  }
+}
+
 export const backupPathPrompt: PromptObject = {
   type: "text",
   name: "backupPath",
   message: "Where should these backups be created?",
+  initial: 'snapshots',
   validate: (value) => {
     try {
-      fs.mkdirSync(path.join(value, 'snapshots'), {recursive: true});
+      fs.mkdirSync(value, {recursive: true});
       return true;
     } catch (e) {
       return e.message;
