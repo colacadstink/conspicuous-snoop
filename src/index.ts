@@ -24,6 +24,11 @@ if(process.env.EVENTLINK_EMAIL && process.env.EVENTLINK_PASSWORD) {
 const me = await client.getMe();
 const myOrgs = me.roles.map((r) => r.organization);
 
+if(myOrgs.length === 0) {
+  console.error("You don't belong to any organizations, so you cannot snoop on events.");
+  process.exit(1);
+}
+
 const snoops: SnoopInstance[] = [];
 
 let continueLooping = true;
