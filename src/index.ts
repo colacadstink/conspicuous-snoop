@@ -9,6 +9,7 @@ import {
   loginPrompt
 } from "./promptsConfigs.js";
 import {SnoopInstance} from "./SnoopInstance.js";
+import {loadFromConfigIfAvailable, updateConfigFile} from "./config.js";
 
 const quitOnCancel = {onCancel: () => process.exit(1)};
 
@@ -29,9 +30,9 @@ if(myOrgs.length === 0) {
   process.exit(1);
 }
 
-const snoops: SnoopInstance[] = [];
-
 const {backupPath} = await prompts(backupPathPrompt, quitOnCancel);
+
+const snoops = await loadFromConfigIfAvailable(client, backupPath);
 
 let continueLooping = true;
 while(continueLooping) {
@@ -52,9 +53,13 @@ while(continueLooping) {
 
       const {name} = await prompts(createSnoopNamePrompt(event));
 
-      snoops.push(new SnoopInstance(client, event, name, backupPath));
+      snoops.push(new SnoopInstance(client, event.id, name, backupPath));
       const setupSnap = await snoops.at(-1).init();
       console.log('New snoop created! Rolling snapshot created at ' + setupSnap);
+
+      await updateConfigFile(backupPath, snoops);
+      console.log('Config file updated.');
+
       break;
     case "snapshot":
       const snoop = (await prompts(getSnoopPrompt(snoops))).snoop as SnoopInstance;

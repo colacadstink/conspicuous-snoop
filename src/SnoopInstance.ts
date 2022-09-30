@@ -1,4 +1,4 @@
-import {Event, EventlinkClient} from "spirit-link";
+import {EventlinkClient} from "spirit-link";
 import {Subscription} from "rxjs";
 import * as fs from "fs";
 import * as path from "path";
@@ -8,16 +8,26 @@ export class SnoopInstance {
 
   constructor(
     private client: EventlinkClient,
-    private event: Event,
-    private name: string,
-    private backupPath: string,
+    public readonly eventId: string,
+    public readonly name: string,
+    public readonly backupPath: string,
   ) {}
 
   init() {
-    fs.mkdirSync(path.join(this.backupPath, this.name));
+    const dir = path.join(this.backupPath, this.name, 'snapshots');
+    let mustMkdir = true;
+    try {
+      if(fs.statSync(dir).isDirectory()) {
+        mustMkdir = false;
+      }
+    } catch {}
+    if(mustMkdir) {
+      fs.mkdirSync(dir, {recursive: true});
+    }
+
     this.#subs = [
-      this.client.subscribeToGameResultReported(this.event.id).subscribe(() => this.updateRollingSnapshot()),
-      this.client.subscribeToCurrentRound(this.event.id).subscribe((round) => this.roundChange(round)),
+      this.client.subscribeToGameResultReported(this.eventId).subscribe(() => this.updateRollingSnapshot()),
+      this.client.subscribeToCurrentRound(this.eventId).subscribe((round) => this.roundChange(round)),
     ];
     return this.takeSnapshot('rolling', true);
   }
@@ -31,9 +41,9 @@ export class SnoopInstance {
   }
 
   async takeSnapshot(snapshotName: string, isRolling = false) {
-    let eventInfo = await this.client.getEventInfo(this.event.id, 'cache-only', true);
+    let eventInfo = await this.client.getEventInfo(this.eventId, 'cache-only', true);
     try {
-      eventInfo = await this.client.getEventInfo(this.event.id, 'network-only', true);
+      eventInfo = await this.client.getEventInfo(this.eventId, 'network-only', true);
     } catch {
       snapshotName += '.FROM-CACHE-ONLY';
     }
@@ -65,6 +75,6 @@ export class SnoopInstance {
   }
 
   toString() {
-    return `${this.name}: ${this.event.title} (${this.event.scheduledStartTime})`
+    return this.name;
   }
 }
