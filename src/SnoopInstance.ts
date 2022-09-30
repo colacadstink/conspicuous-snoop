@@ -29,9 +29,9 @@ export class SnoopInstance {
   }
 
   async takeSnapshot(snapshotName: string, isRolling = false) {
-    let eventInfo = await this.client.getEventInfo(this.event.id, 'cache-only');
+    let eventInfo = await this.client.getEventInfo(this.event.id, 'cache-only', true);
     try {
-      eventInfo = await this.client.getEventInfo(this.event.id, 'network-only');
+      eventInfo = await this.client.getEventInfo(this.event.id, 'network-only', true);
     } catch {
       snapshotName += '.FROM-CACHE-ONLY';
     }
