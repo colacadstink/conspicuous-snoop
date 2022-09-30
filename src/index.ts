@@ -10,7 +10,7 @@ import {
 } from "./promptsConfigs.js";
 import {SnoopInstance} from "./SnoopInstance.js";
 
-const quitOnCancel = {onCancel: () => process.exit(1)}
+const quitOnCancel = {onCancel: () => process.exit(1)};
 
 const answers = await prompts(loginPrompt, quitOnCancel);
 
