@@ -21,8 +21,11 @@ export const actionsPrompt: PromptObject = {
     title: "Add new event to watch list",
     value: "addNew",
   }, {
-    title: "Snapshot an event",
+    title: "Save a snapshot for an existing snoop",
     value: "snapshot",
+  }, {
+    title: "Stop watching an event",
+    value: "remove",
   }, {
     title: "Quit",
     value: "quit",
@@ -98,7 +101,7 @@ export const getSnoopPrompt = (snoops: SnoopInstance[]): PromptObject => {
   return {
     type: "select",
     name: "snoop",
-    message: "Which event do you want to snapshot?",
+    message: "Which snoop?",
     choices: snoops.map((snoop) => {
       return {
         title: snoop.toString(),

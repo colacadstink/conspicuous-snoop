@@ -61,6 +61,13 @@ while(continueLooping) {
       console.log('Config file updated.');
 
       break;
+    case "remove":
+      const snoopToRemove = (await prompts(getSnoopPrompt(snoops))).snoop as SnoopInstance;
+      const index = snoops.indexOf(snoopToRemove);
+      snoops.splice(index, 1);
+      snoopToRemove.shutdown();
+      console.log("Stopped updating snoop - logs will still exist!");
+      break;
     case "snapshot":
       const snoop = (await prompts(getSnoopPrompt(snoops))).snoop as SnoopInstance;
       if(!snoop) continue;
