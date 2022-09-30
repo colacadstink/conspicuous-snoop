@@ -12,10 +12,14 @@ import {SnoopInstance} from "./SnoopInstance.js";
 
 const quitOnCancel = {onCancel: () => process.exit(1)};
 
-const answers = await prompts(loginPrompt, quitOnCancel);
-
 const client = new EventlinkClient();
-await client.login(answers.email, answers.password);
+if(process.env.EVENTLINK_EMAIL && process.env.EVENTLINK_PASSWORD) {
+  console.log(`Using ENV vars to log in as ${process.env.EVENTLINK_EMAIL}`);
+  await client.login(process.env.EVENTLINK_EMAIL, process.env.EVENTLINK_PASSWORD);
+} else {
+  const answers = await prompts(loginPrompt, quitOnCancel);
+  await client.login(answers.email, answers.password);
+}
 
 const me = await client.getMe();
 const myOrgs = me.roles.map((r) => r.organization);
@@ -27,7 +31,12 @@ while(continueLooping) {
   const {action} = await prompts(actionsPrompt);
   switch (action) {
     case "addNew":
-      const org = (await prompts(createOrgPrompt(myOrgs))).org as Organization;
+      let org: Organization;
+      if(myOrgs.length === 1) {
+        org = myOrgs[0];
+      } else {
+        org = (await prompts(createOrgPrompt(myOrgs))).org as Organization;
+      }
       if(!org) continue;
 
       const events = await client.getUpcomingEvents(org.id);
@@ -50,12 +59,12 @@ while(continueLooping) {
 
       await snoop.takeSnapshot(snapshotName);
       break;
-    case "quit":
-      const {confirmed} = await prompts(confirmPrompt);
-      if(confirmed) {
+    default:
+      const result = await prompts(confirmPrompt);
+      if(result.confirmed || result.confirmed === undefined) { // Ctrl+C makes this undefined
         continueLooping = false;
         snoops.forEach((snoop) => snoop.shutdown());
+        process.exit(0);
       }
-      process.exit(0);
   }
 }
