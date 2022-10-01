@@ -25,11 +25,26 @@ export class SnoopInstance {
       fs.mkdirSync(dir, {recursive: true});
     }
 
+    return this.resetSubs();
+  }
+
+  resetSubs() {
+    for(const sub of this.#subs) {
+      try {
+        sub.unsubscribe();
+      } catch {}
+    }
     this.#subs = [
-      this.client.subscribeToGameResultReported(this.eventId).subscribe(() => this.updateRollingSnapshot()),
-      this.client.subscribeToCurrentRound(this.eventId).subscribe((round) => this.roundChange(round)),
+      this.client.subscribeToGameResultReported(this.eventId).subscribe({
+        next: () => this.updateRollingSnapshot(),
+        error: () => this.resetSubs(),
+      }),
+      this.client.subscribeToCurrentRound(this.eventId).subscribe({
+        next: (round) => this.roundChange(round),
+        error: () => this.resetSubs(),
+      }),
     ];
-    return this.takeSnapshot('rolling', true);
+    return this.updateRollingSnapshot();
   }
 
   roundChange(round) {
