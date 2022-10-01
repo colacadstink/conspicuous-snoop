@@ -29,6 +29,8 @@ export async function loadFromConfigIfAvailable(client: EventlinkClient, backupD
     }));
     if(attemptedSnoops.some((s) => s.status === 'rejected')) {
       console.warn('Some snoops could not be restarted:');
+    } else {
+      console.log(`${attemptedSnoops.length} snoops have been restarted!`);
     }
     return attemptedSnoops.map((s) => {
       if(s.status === 'fulfilled') {
