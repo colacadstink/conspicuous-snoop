@@ -37,11 +37,17 @@ export class SnoopInstance {
     this.#subs = [
       this.client.subscribeToGameResultReported(this.eventId).subscribe({
         next: () => this.updateRollingSnapshot(),
-        error: () => this.resetSubs(),
+        error: () => {
+          console.error("GameResultReported error");
+          return this.resetSubs();
+        },
       }),
       this.client.subscribeToCurrentRound(this.eventId).subscribe({
         next: (round) => this.roundChange(round),
-        error: () => this.resetSubs(),
+        error: () => {
+          console.error("CurrentRound error");
+          return this.resetSubs();
+        },
       }),
     ];
     return this.updateRollingSnapshot();
